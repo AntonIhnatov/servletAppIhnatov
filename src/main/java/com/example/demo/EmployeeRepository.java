@@ -8,18 +8,18 @@ import java.util.Optional;
 
 public final class EmployeeRepository {
 
-    /*public static void main(String[] args) {
+    public static void main(String[] args) {
         getConnection();
-        Employee employee = new Employee("Takeshi", "takeshi.jp@jmail.jp", "Japan");
+        Employee employee = new Employee("Петро", "Petro.ukr@jmail.jp", "Ukraine");
         save(employee);
-    }*/
+    }
 
     public static Connection getConnection() {
 
         Connection connection = null;
         String url = "jdbc:postgresql://localhost:5432/employee";
         String user = "postgres";
-        String password = "postgres";
+        String password = "Louise@444";
 
         try {
             connection = DriverManager.getConnection(url, user, password);
@@ -36,16 +36,15 @@ public final class EmployeeRepository {
 
     public static int save(Employee employee) {
         int status = 0;
-        try {
-            Connection connection = EmployeeRepository.getConnection();
-            PreparedStatement ps = connection.prepareStatement("insert into users(name,email,country) values (?,?,?)");
+        try (Connection connection = EmployeeRepository.getConnection();
+             PreparedStatement ps = connection.prepareStatement("insert into users(name,email,country) values (?,?,?)")
+        ) {
+
             ps.setString(1, employee.name());
             ps.setString(2, employee.email());
             ps.setString(3, employee.country());
 
             status = ps.executeUpdate();
-            connection.close();
-
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
