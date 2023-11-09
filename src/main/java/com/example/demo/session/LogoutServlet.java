@@ -7,6 +7,8 @@ import jakarta.servlet.http.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Servlet implementation class LogoutServlet
@@ -14,25 +16,28 @@ import java.io.PrintWriter;
 @WebServlet("/LogoutServlet")
 public class LogoutServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private void processSessionAndPrintMessage(HttpSession session, PrintWriter out) {
+        Optional.ofNullable(session.getAttribute("user")).ifPresent(userAttribute -> {
+            System.out.println("User=" + userAttribute);
+            session.invalidate();
+            out.println("Session invalidated. Welcome back, " + userAttribute + "!");
+        });
+
+        Optional.of(session).ifPresent(s -> out.println("Either user name or password is wrong!"));
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/html");
         Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (cookie.getName().equals("JSESSIONID")) {
-                    System.out.println("JSESSIONID=" + cookie.getValue());
-                    break;
-                }
-            }
-        }
+
+        Arrays.stream(cookies)
+                .filter(cookie -> "JSESSIONID".equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .findFirst().ifPresent(jsessionId -> System.out.println("JSESSIONID=" + jsessionId));
+
         HttpSession session = request.getSession(false);
-        System.out.println("User=" + session.getAttribute("user"));
-        if (session != null) {
-            session.invalidate();
-        }
-        PrintWriter out = response.getWriter();
-        out.println("Either user name or password is wrong!");
+        processSessionAndPrintMessage(session, response.getWriter());
+
     }
 
 }
